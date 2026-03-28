@@ -270,8 +270,8 @@ v5-legal is complete when all 7 phases of the validation test procedure pass:
 ## References
 
 - Feasibility assessment: `C:\1-cosyn-local-repo\use-case\legal-use-case\cosyn-v4.1.1-local-llm-feasibility-assessment.pdf`
-- v4.1.1 build log: `docs/build-reports/cosyn-v4.1.1-build-log.md`
-- Live testing methodology spec: `docs/specs/2026-03-28-live-testing-methodology-design.md`
+- v4.1.1 build log: `docs/build-reports/v4x-archive/cosyn-v4.1.1-build-log.md`
+- Live testing methodology spec: `docs/specs/v4x-archive/2026-03-28-live-testing-methodology-design.md`
 - CoSyn Constitution v15.1.0: `governance/artifacts/cosyn-constitution-v15.1.0.md`
 
 ---
