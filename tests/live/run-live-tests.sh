@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# CoSyn Live Test Harness
+# CoSyn Live Test Harness — v5-legal
 # Reads cosyn-live-test-manifest.csv, runs each prompt through cosyn-cli,
 # captures results, and generates a markdown report.
 #
 # Usage: bash tests/live/run-live-tests.sh [path-to-cosyn-cli]
-# Default CLI path: target/release/cosyn-cli.exe
+# Default CLI path: target/release/cosyn-cli (Linux) or cosyn-cli.exe (Windows)
 
 set -euo pipefail
 
@@ -13,11 +13,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANIFEST="$SCRIPT_DIR/cosyn-live-test-manifest.csv"
 SNAPSHOT_DIR="$SCRIPT_DIR/telemetry-snapshots"
 TELEMETRY_FILE="cosyn_telemetry.log"
-COST_CEILING="0.50"
-# gpt-4o-mini: $0.60 per 1M output tokens
-COST_PER_OUTPUT_TOKEN="0.0000006"
+# v5-legal: local inference, zero marginal cost. Cost tracking retained for
+# structure but ceiling/rate are effectively unused.
+COST_CEILING="0.00"
+COST_PER_OUTPUT_TOKEN="0"
 
-CLI="${1:-target/release/cosyn-cli.exe}"
+# Default: Linux binary. Override with first argument for other platforms.
+CLI="${1:-target/release/cosyn-cli}"
 
 # --- Validate prerequisites ---
 if [[ ! -f "$CLI" ]]; then
@@ -27,8 +29,10 @@ if [[ ! -f "$CLI" ]]; then
     exit 1
 fi
 
-if [[ -z "${OPENAI_API_KEY:-}" ]]; then
-    echo "ERROR: OPENAI_API_KEY not set"
+# v5-legal: verify local Ollama server is reachable
+if ! curl -sf http://localhost:11434/api/tags > /dev/null 2>&1; then
+    echo "ERROR: Ollama server not reachable at localhost:11434"
+    echo "Start Ollama first: ollama serve"
     exit 1
 fi
 
@@ -316,8 +320,8 @@ COST_DISPLAY=$(printf "%.6f" "$CUMULATIVE_COST" 2>/dev/null || echo "$CUMULATIVE
     echo "# CoSyn Live Test Report"
     echo ""
     echo "**Date:** $DATE"
-    echo "**Version:** 4.1.0"
-    echo "**LLM:** OpenAI gpt-4o-mini"
+    echo "**Version:** 5.0.0-dev"
+    echo "**LLM:** Local inference (Ollama)"
     echo "**Prompts tested:** $TOTAL"
     if [[ "$ABORTED" == "true" ]]; then
         echo "**Status:** ABORTED — cost ceiling reached"
@@ -334,7 +338,7 @@ COST_DISPLAY=$(printf "%.6f" "$CUMULATIVE_COST" 2>/dev/null || echo "$CUMULATIVE
     echo "| Baseline false-block rate | ${FALSE_BLOCK_RATE}% ($BASELINE_BLOCK/$BASELINE_TOTAL) | Must be 0% for Phase 2 |"
     echo "| Stress false-pass rate | ${FALSE_PASS_RATE}% ($STRESS_FALSE_PASSES/$STRESS_EXPECTED_BLOCKS expected blocks) | Documented |"
     echo "| Revision loop triggers | $REVISION_TRIGGERS/$TOTAL_PASS passed prompts (${REVISION_RATE}%) | Informational |"
-    echo "| Estimated API cost | \$$COST_DISPLAY | Must be under \$$COST_CEILING |"
+    echo "| Estimated inference cost | \$$COST_DISPLAY (local, zero marginal) | N/A |"
     echo ""
     echo "---"
     echo ""
