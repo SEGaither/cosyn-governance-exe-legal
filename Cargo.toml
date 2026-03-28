@@ -11,7 +11,7 @@ anyhow = "1.0"
 log = "0.4"
 env_logger = "0.10"
 uuid = { version = "1", features = ["v4"] }
-reqwest = { version = "0.12", features = ["blocking", "json"] }
+reqwest = { version = "0.12", features = ["blocking", "json"] } # HTTP client for local Ollama inference API
 eframe = "0.31"
 
 [lib]

@@ -1,30 +1,41 @@
 # Changelog
 
-## v4.1.0 (2026-03-27)
+## v5.0.0-dev (2026-03-28)
 
-Initial release in the `cosyn-governance-exe` repository.
+Fork-by-copy from [cosyn-governance-exe v4.1.1](https://github.com/SEGaither/cosyn-governance-exe/releases/tag/v4.1.1) to create the v5-legal line for local-LLM legal professional services.
 
-### Runtime Stabilization (Phase 1 complete)
+### What Changed in the Fork
 
-- Fixed authority validator strings to match embedded governance file contents
-- Cleaned sentinel blocklist — removed overly broad tokens (undefined, hack, xxx, tbd)
-- Increased LLM max tokens from 200 to 1024
-- Relaxed input gate thresholds for short/reference-heavy prompts
-- Added user-friendly error messages (BlockReasonCode to plain English)
-- Added API key check at startup with GUI warning
-- Replaced CLI test harness with functional CLI (accepts real input via args)
-- Implemented revision loop (3 attempts max, fail-closed on exhaustion)
-- Removed redundant bootstrap authority check
-- Verified persistent telemetry logging to cosyn_telemetry.log
+- Package renamed from `cosyn` to `cosyn-legal`, version set to `5.0.0-dev`
+- LLM client updated from OpenAI API to local Ollama endpoint (localhost:11434)
+- Removed OPENAI_API_KEY dependency from bootstrap, CLI, and LLM client
+- Documentation updated to reflect v5-legal identity and local-LLM architecture
+- v4.x build reports and test results archived to `v4x-archive/` subdirectories
 
-### Repository
+### Design Decisions Approved
 
-- Separated from [cosyn-runtime-wrapper](https://github.com/SEGaither/cosyn-runtime-wrapper) (Python/FastAPI) into dedicated Rust EXE repo
-- Renamed governance artifact files to match content identity strings
-- Updated author attribution to Shane Gaither
-- 30 tests passing, 0 failed, 2 ignored (require live API key)
-- Live end-to-end verified against OpenAI gpt-4o-mini
+1. Separate repo (not branch) — v4.x and v5.x do not share commit history
+2. Self-hosted SearXNG for external research
+3. Explicit dropdown for data classification, default Client
+4. Defer internal network access (DMS/SharePoint) to v5.1
+5. Legal-specific test manifest
 
-## Prior History
+### Planned Sub-Projects (Not Yet Implemented)
 
-Build history from v1.0 through v4.0 is documented in `docs/build-reports/cosyn-v4.1.0-technical-report.md`. Source history is in the original [cosyn-runtime-wrapper](https://github.com/SEGaither/cosyn-runtime-wrapper) repository.
+- **A** — Local LLM backend (Ollama swap + configurable endpoint)
+- **A.1** — Model qualification (25-prompt suite against candidate models)
+- **B** — Session isolation
+- **C** — Data classification (Client / Internal / External)
+- **D** — Controlled external access
+- **E** — Enhanced telemetry (ABA compliance)
+- **F** — 7-phase validation test
+
+### Status
+
+Not ready for use. Governance pipeline compiles and tests pass, but LLM client requires a running Ollama server with the target model loaded.
+
+---
+
+## v4.x History (Pre-Fork)
+
+v4.1.0 and v4.1.1 history is documented in the original [cosyn-governance-exe](https://github.com/SEGaither/cosyn-governance-exe) repository. Archived build reports from v4.x are in `docs/build-reports/v4x-archive/`.

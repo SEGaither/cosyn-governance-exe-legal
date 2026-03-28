@@ -23,11 +23,7 @@ fn main() {
         std::process::exit(1);
     }
 
-    // API key check
-    if std::env::var("OPENAI_API_KEY").unwrap_or_default().is_empty() {
-        eprintln!("ERROR: OPENAI_API_KEY not set — set it in your environment to use CoSyn.");
-        std::process::exit(1);
-    }
+    // TODO(sub-project-a): Add local LLM endpoint reachability check
 
     let input = &args[1];
     // Clear any prior telemetry

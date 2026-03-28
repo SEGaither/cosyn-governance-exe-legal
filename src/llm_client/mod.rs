@@ -1,3 +1,16 @@
+// =============================================================================
+// LLM Client — v5-legal
+// =============================================================================
+// SUB-PROJECT A TARGET: This module currently contains the v4.x OpenAI
+// implementation adapted for local inference. The full Ollama swap (configurable
+// endpoint, model selection, zero-cost tracking) will be implemented in
+// Sub-project A.
+//
+// Current state: Endpoint and model updated to Ollama defaults. API key check
+// removed (local inference requires no auth). Cost tracking zeroed (local
+// inference has no per-token cost).
+// =============================================================================
+
 use crate::core::errors::{CosynError, CosynResult};
 use crate::core::types::DraftOutput;
 use serde::{Deserialize, Serialize};
@@ -7,12 +20,12 @@ use std::time::Duration;
 const SYSTEM_PROMPT: &str =
     "You are a controlled drafting engine. Produce a concise, direct response to the user input. Do not include placeholders, filler, or speculative content.";
 
-const MODEL: &str = "gpt-4o-mini";
+// TODO(sub-project-a): Make model and endpoint configurable via config file or env var
+const MODEL: &str = "qwen2.5:32b"; // Placeholder — final model selected during Sub-project A.1
 const MAX_TOKENS: u32 = 1024;
 const TEMPERATURE: f64 = 0.3;
-const TIMEOUT_SECS: u64 = 30;
-const COST_PER_1K_INPUT: f64 = 0.00015;
-const COST_PER_1K_OUTPUT: f64 = 0.0006;
+const TIMEOUT_SECS: u64 = 60; // Local inference may be slower than cloud API
+const ENDPOINT: &str = "http://localhost:11434/v1/chat/completions";
 
 static REQ_COUNT: AtomicU64 = AtomicU64::new(0);
 static TOTAL_TOKENS: AtomicU64 = AtomicU64::new(0);
@@ -53,9 +66,6 @@ struct ResponseMessage {
 }
 
 pub fn draft(input: &str) -> CosynResult<DraftOutput> {
-    let api_key = std::env::var("OPENAI_API_KEY")
-        .map_err(|_| CosynError::Draft("OPENAI_API_KEY not set".into()))?;
-
     let body = ChatRequest {
         model: MODEL,
         messages: vec![
@@ -78,16 +88,15 @@ pub fn draft(input: &str) -> CosynResult<DraftOutput> {
         .map_err(|e| CosynError::Draft(format!("HTTP client error: {}", e)))?;
 
     let resp = client
-        .post("https://api.openai.com/v1/chat/completions")
-        .header("Authorization", format!("Bearer {}", api_key))
+        .post(ENDPOINT)
         .json(&body)
         .send()
-        .map_err(|e| CosynError::Draft(format!("API request failed: {}", e)))?;
+        .map_err(|e| CosynError::Draft(format!("Local LLM request failed: {}", e)))?;
 
     if !resp.status().is_success() {
         let status = resp.status();
         let text = resp.text().unwrap_or_default();
-        return Err(CosynError::Draft(format!("API error {}: {}", status, text)));
+        return Err(CosynError::Draft(format!("Local LLM error {}: {}", status, text)));
     }
 
     let chat: ChatResponse = resp
@@ -102,30 +111,20 @@ pub fn draft(input: &str) -> CosynResult<DraftOutput> {
         .to_string();
 
     if text.is_empty() {
-        return Err(CosynError::Draft("API returned empty content".into()));
+        return Err(CosynError::Draft("Local LLM returned empty content".into()));
     }
 
-    // Usage telemetry
+    // Usage telemetry (local inference — zero marginal cost)
     let input_tokens = estimate_tokens(SYSTEM_PROMPT) + estimate_tokens(input);
     let output_tokens = estimate_tokens(&text);
     let call_tokens = input_tokens + output_tokens;
     TOTAL_TOKENS.fetch_add(call_tokens, Ordering::Relaxed);
     let reqs = REQ_COUNT.fetch_add(1, Ordering::Relaxed) + 1;
     let total_tok = TOTAL_TOKENS.load(Ordering::Relaxed);
-    let est_cost = (input_tokens as f64 * COST_PER_1K_INPUT
-        + output_tokens as f64 * COST_PER_1K_OUTPUT)
-        / 1000.0
-        * reqs as f64;
     println!(
-        "  USAGE → req_count: {} | est_tokens: {} | est_cost: ${:.6}",
-        reqs, total_tok, est_cost
+        "  USAGE → req_count: {} | est_tokens: {} | cost: $0 (local inference)",
+        reqs, total_tok
     );
-    if reqs > 50 {
-        println!("  WARNING → approaching request limit");
-    }
-    if total_tok > 50_000 {
-        println!("  WARNING → approaching token limit");
-    }
 
     Ok(DraftOutput { text })
 }
@@ -135,10 +134,10 @@ mod tests {
     use super::*;
 
     #[test]
-    #[ignore] // requires OPENAI_API_KEY — run with: cargo test -- --ignored
-    fn live_api_returns_draft() {
+    #[ignore] // requires local Ollama server running — run with: cargo test -- --ignored
+    fn local_llm_returns_draft() {
         let result = draft("What is 2 + 2?");
-        assert!(result.is_ok(), "API call failed: {:?}", result.err());
+        assert!(result.is_ok(), "Local LLM call failed: {:?}", result.err());
         let output = result.unwrap();
         assert!(!output.text.is_empty());
     }

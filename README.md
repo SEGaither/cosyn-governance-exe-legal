@@ -41,14 +41,6 @@ User -> [Input Gate] -> [Local LLM] -> [Output Governance] -> [Release or Block]
 
 > **Status:** v5.0.0-dev — not yet ready for use. See [v4.1.1](https://github.com/SEGaither/cosyn-governance-exe/releases/tag/v4.1.1) for the current stable release.
 
-### CLI
-
-```
-cosyn-cli "Explain how photosynthesis works"
-cosyn-cli --version
-cosyn-cli --help
-```
-
 ## Building from Source
 
 **Requirements:** Rust toolchain (edition 2021)
@@ -67,10 +59,10 @@ Binaries output to `target/release/`:
 cargo test
 ```
 
-30 tests across 4 suites (governance layer, DCC enforcement, audit records, telemetry events). Two tests are ignored by default (require live API key). To run all tests including live API:
+30 tests across 4 suites (governance layer, DCC enforcement, audit records, telemetry events). Two tests are ignored by default (require a running local Ollama server). To run all tests including live inference:
 
 ```bash
-set OPENAI_API_KEY=sk-...
+# Ensure Ollama is running at localhost:11434 with the target model loaded
 cargo test -- --ignored
 ```
 

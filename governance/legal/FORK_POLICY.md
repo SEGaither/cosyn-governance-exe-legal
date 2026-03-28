@@ -2,6 +2,8 @@
 
 Version 1.0
 
+> **Note:** This repository (`cosyn-governance-exe-legal`) is the official v5-legal fork variant of [cosyn-governance-exe](https://github.com/SEGaither/cosyn-governance-exe), maintained by the original author (Shane Gaither). It is not a third-party fork.
+
 ## Purpose
 
 This policy clarifies how forks of the CoSyn repository may be created and distributed while protecting the integrity of the original project.

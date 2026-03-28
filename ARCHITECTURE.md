@@ -1,9 +1,9 @@
-# CoSyn Governance EXE — Architecture
+# CoSyn Governance EXE — Legal — Architecture
 
-**Version:** 4.1.0
+**Version:** 5.0.0-dev
 **Language:** Rust (edition 2021)
 **GUI:** eframe/egui
-**LLM:** OpenAI gpt-4o-mini via OPENAI_API_KEY
+**LLM:** Local inference server (Ollama-compatible) — Sub-project A
 
 ---
 
@@ -15,10 +15,11 @@
               v
          [Input Gate]
          Subject binding / Evidence / Ambiguity / Version truth
+         Data classification enforcement (v5-legal)
          (Model C: Hybrid Controlled Recognition)
               |
               v (pass)
-         [LLM Client] -> OpenAI API (gpt-4o-mini, 1024 max tokens)
+         [LLM Client] -> Local inference server (Ollama, localhost:11434)
               |
               v
          [Output Governance]
@@ -46,8 +47,8 @@
 | `cli.rs` | CLI binary: accepts prompt arg, runs full pipeline |
 | `authority_loader.rs` | Embeds CGS/Governor/Architect via `include_str!`, validates identity strings |
 | `orchestrator/mod.rs` | Full DCC pipeline with revision loop (3 attempts max) |
-| `orchestrator/bootstrap.rs` | API key check at startup |
-| `llm_client/mod.rs` | OpenAI API call, gpt-4o-mini, 1024 max tokens |
+| `orchestrator/bootstrap.rs` | Local LLM availability check at startup (Sub-project A) |
+| `llm_client/mod.rs` | Local inference server call via Ollama-compatible API (Sub-project A) |
 | `ui_runtime/mod.rs` | eframe/egui GUI with friendly error messages, telemetry flush |
 | `governance_layer/mod.rs` | Constitutional enforcement (7 checks, RuleVerdict) |
 | `validator/mod.rs` | Draft validation (empty, min length, sentinels) |
@@ -79,7 +80,8 @@
 - **Fail closed.** On any ambiguous or invalid condition, the system blocks.
 - **Constraint-first.** No rules-based or flowchart logic. Constitutional enforcement only.
 - **Deterministic.** Same input produces same governance decision.
-- **Narrow scope.** One LLM (gpt-4o-mini), one UI (egui). No multi-model, no multi-UI.
+- **Local only.** All inference runs on a local LLM. No client data leaves the machine.
+- **Narrow scope.** One local LLM, one UI (egui). No multi-model, no multi-UI.
 - **Embedded authority.** Governance artifacts compiled into the binary via `include_str!`. No external files required at runtime.
 - **Observable.** Every stage transition logged. Telemetry persisted to file.
 
@@ -118,5 +120,5 @@ Located at `governance/artifacts/` (compiled into binary):
 | log | 0.4 | Logging facade |
 | env_logger | 0.10 | Logger |
 | uuid | 1 (v4) | Unique identifiers |
-| reqwest | 0.12 (blocking, json) | HTTP client for OpenAI API |
+| reqwest | 0.12 (blocking, json) | HTTP client for local Ollama inference API |
 | eframe | 0.31 | GUI framework |
